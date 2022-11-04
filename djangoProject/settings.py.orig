@@ -177,16 +177,14 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
-EMAIL_HOST_USER = 'djangocelery1337@gmail.com'
-EMAIL_HOST_PASSWORD = 'frvctonxywjhelch'
+EMAIL_HOST_USER = 'khramovich02@mail.ru'
+EMAIL_HOST_PASSWORD = 'minimal1337'
 
-BROKER_URL = 'redis://127.0.0.1:6379'
-CELERY_broker_url = 'redis://127.0.0.1:6379'
-accept_content = ['application/json']
-result_serializer = 'json'
-timezone = 'Europe/Minsk'
-# CELERY_IMPORTS = ('user',)
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Minsk'
 
-result_backend = "redis://127.0.0.1:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

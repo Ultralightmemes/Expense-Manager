@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+
 from user.models import User
 from user.serializers import RegistrationSerializer, UserSerializer
 
@@ -25,3 +26,5 @@ class UserAPIView(generics.RetrieveUpdateAPIView):
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
+
+
