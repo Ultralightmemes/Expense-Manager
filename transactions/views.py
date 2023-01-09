@@ -3,7 +3,6 @@ from rest_framework import viewsets, permissions, status, filters
 from django.db import transaction as trn
 from rest_framework.response import Response
 
-from categories.models import Category
 from transactions.models import Transaction
 from transactions.serializers import TransactionSerializer
 from user.models import User
@@ -26,7 +25,6 @@ class TransactionsViewSet(viewsets.ModelViewSet):
         return Transaction.objects.filter(user__email=self.request.user.email)
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
             with trn.atomic():
@@ -37,7 +35,3 @@ class TransactionsViewSet(viewsets.ModelViewSet):
             return Response(data=serializer.data)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-
-

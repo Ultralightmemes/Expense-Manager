@@ -1,0 +1,90 @@
+version: '3.9'
+
+services:
+  api:
+    container_name: expense-manager-api
+    build: .
+    command: bash -c "python manage.py migrate && python /usr/src/api/manage.py runserver 0.0.0.0:8000 && ["./wait-for-it.sh", "db:5432", "--", "python", "app.py"]"
+    volumes:
+      - .:/usr/src/api/
+    ports:
+      - '8000:8000'
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - POSTGRES_DB=xonedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DATABASE_HOST=postgresql_db
+    depends_on:
+      - postgresql_db
+      - redis
+
+  postgresql_db:
+    container_name: expense-postgres-db
+    image: postgres:12.13-alpine
+    volumes:
+      - postgresql_data:/var/lib/postgres/
+    environment:
+      - POSTGRES_DB=xonedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+    restart: always
+
+  redis:
+    image: redis:7.0.5-alpine
+
+  celery:
+    build: .
+    command: celery -A djangoProject worker --pool=solo -l INFO
+    volumes:
+      - .:/usr/src/api
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - POSTGRES_DB=xonedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DATABASE_HOST=postgresql_db
+    depends_on:
+      - api
+      - redis
+
+  celery_beat:
+    build: .
+    command: celery -A djangoProject beat -l INFO
+    volumes:
+      - .:/usr/src/api
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - api
+      - redis
+
+  flower:
+    build: .
+    command: celery --broker=redis://redis:6379 flower --loglevel=INFO --port=9090
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - .:/usr/src/api
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - api
+      - redis
+      - celery
+      - celery_beat
+
+volumes:
+  postgresql_data:

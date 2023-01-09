@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,10 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+mkg=8#jk#r)i5^o3wq65$5mc^6k-b9w6z#$mcyswb8e7m)dts'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = str(os.environ.get('DEBUG')) == "1"
 
 ALLOWED_HOSTS = ['*']
 
@@ -63,8 +64,7 @@ ROOT_URLCONF = 'djangoProject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'xonedb',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('POSTGRES_DB', 'xonedb'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'admin'),
+        'HOST': os.environ.get('POSTGRES_DATABASE_HOST', 'localhost'),
+        # 'PORT': '5432',
     }
 }
 
@@ -177,16 +177,30 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
-EMAIL_HOST_USER = 'djangocelery1337@gmail.com'
-EMAIL_HOST_PASSWORD = 'frvctonxywjhelch'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
-BROKER_URL = 'redis://127.0.0.1:6379'
-CELERY_broker_url = 'redis://127.0.0.1:6379'
-accept_content = ['application/json']
-result_serializer = 'json'
-timezone = 'Europe/Minsk'
-# CELERY_IMPORTS = ('user',)
+# Celery settings for docker
 
-result_backend = "redis://127.0.0.1:6379"
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BACKEND", "redis://redis:6379/0")
 
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Default Celery settings
+
+# RESULT_BACKEND = "redis://127.0.0.1:6379"
+# BROKER_URL = "redis://127.0.0.1:6379"
+# accept_content = ['application/json']
+# result_serializer = 'json'
+
+# Initial Celery settings
+
+# BROKER_URL = 'redis://127.0.0.1:6379'
+# CELERY_broker_url = 'redis://127.0.0.1:6379'
+# accept_content = ['application/json']
+# result_serializer = 'json'
+# timezone = 'Europe/Minsk'
+#
+# result_backend = "redis://127.0.0.1:6379"
+#
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

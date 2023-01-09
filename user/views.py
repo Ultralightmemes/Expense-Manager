@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -17,11 +17,15 @@ class UserAPIView(generics.RetrieveUpdateAPIView):
 
     def get(self, request):
         user = User.objects.get(email=request.user.email)
+        if user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def patch(self, request):
         user = User.objects.get(email=request.user.email)
+        if user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         serializer = UserSerializer(user, request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

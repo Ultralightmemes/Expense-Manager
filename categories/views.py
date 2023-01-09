@@ -24,16 +24,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
+        user = request.user
+        if user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         instance = self.get_object()
         if instance.default:
             serializer = CategorySerializer(data=request.data)
             if serializer.is_valid():
-                user_category = UserCategory.objects.get(category=instance, user__email=request.user.email)
+                user_category = UserCategory.objects.get(category=instance, user__email=user.email)
                 user_category.is_active = False
                 with transaction.atomic():
                     user_category.save()
                     category = serializer.save()
-                    UserCategory.objects.create(user=request.user, category=category)
+                    UserCategory.objects.create(user=user, category=category)
         else:
             serializer = CategorySerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
@@ -41,8 +44,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.validated_data)
 
     def destroy(self, request, *args, **kwargs):
+        user = request.user
+        if user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         instance = self.get_object()
-        user_category = UserCategory.objects.get(category=instance, user__email=request.user.email)
+        user_category = UserCategory.objects.get(category=instance, user__email=user.email)
         user_category.is_active = False
         user_category.save()
         serializer = CategorySerializer(instance)
